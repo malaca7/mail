@@ -145,29 +145,29 @@
 }
 
 @utility glass-panel {
-  background-color: oklch(from var(--color-surface) l c h / 75%);
+  background-color: var(--color-surface);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--color-border);
 }
 
 @utility glass-card {
-  background: linear-gradient(135deg, oklch(from var(--color-surface) l c h / 85%), oklch(from var(--color-surface) l c h / 55%));
+  background-color: var(--color-surface);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid oklch(1 0 0 / 12%);
+  border: 1px solid var(--color-border);
   box-shadow: 0 10px 30px -10px oklch(0 0 0 / 0.3);
 }
 
 @utility glow-border {
-  border: 1px solid oklch(from var(--color-primary) l c h / 50%);
-  box-shadow: 0 0 15px -3px oklch(from var(--color-primary) l c h / 0.25);
+  border: 1px solid var(--color-primary);
+  box-shadow: 0 0 15px -3px oklch(0.62 0.22 250 / 0.3);
 }
 
 @utility tech-badge {
-  background: oklch(from var(--color-primary) l c h / 12%);
+  background: oklch(0.62 0.22 250 / 0.15);
   color: var(--color-primary);
-  border: 1px solid oklch(from var(--color-primary) l c h / 30%);
+  border: 1px solid oklch(0.62 0.22 250 / 0.3);
   font-family: var(--font-mono);
 }
 
