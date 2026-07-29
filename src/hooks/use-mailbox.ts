@@ -1,0 +1,96 @@
+import { useMemo, useState } from "react";
+import { mockEmails } from "@/lib/mail/mock-data";
+import type { Email, FolderId } from "@/lib/mail/types";
+
+const PAGE_SIZE = 6;
+
+/**
+ * Estado central do webmail. Hoje opera sobre dados mock em memória;
+ * ao plugar o backend, cada mutação vira uma mutation do React Query.
+ */
+export function useMailbox() {
+  const [emails, setEmails] = useState<Email[]>(mockEmails);
+  const [folder, setFolderState] = useState<FolderId>("inbox");
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const counts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const email of emails) {
+      if (!email.lida && email.pasta !== "trash") map[email.pasta] = (map[email.pasta] ?? 0) + 1;
+    }
+    map.drafts = emails.filter((e) => e.pasta === "drafts").length;
+    map.starred = emails.filter((e) => e.favorita && e.pasta !== "trash").length;
+    return map;
+  }, [emails]);
+
+  const filtered = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    return emails
+      .filter((e) => (folder === "starred" ? e.favorita && e.pasta !== "trash" : e.pasta === folder))
+      .filter((e) =>
+        term
+          ? [e.assunto, e.texto, e.preview, e.remetente.nome ?? "", e.remetente.email]
+              .join(" ")
+              .toLowerCase()
+              .includes(term)
+          : true,
+      )
+      .sort((a, b) => +new Date(b.data_envio) - +new Date(a.data_envio));
+  }, [emails, folder, query]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const selected = emails.find((e) => e.id === selectedId) ?? null;
+
+  const update = (id: string, patch: Partial<Email>) =>
+    setEmails((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e)));
+
+  return {
+    emails,
+    folder,
+    query,
+    counts,
+    filtered,
+    pageItems,
+    currentPage,
+    totalPages,
+    pageSize: PAGE_SIZE,
+    selected,
+    setQuery: (value: string) => {
+      setQuery(value);
+      setPage(1);
+    },
+    setFolder: (value: FolderId) => {
+      setFolderState(value);
+      setPage(1);
+      setSelectedId(null);
+    },
+    setPage,
+    open: (id: string) => {
+      setSelectedId(id);
+      update(id, { lida: true });
+    },
+    close: () => setSelectedId(null),
+    toggleRead: (id: string, lida: boolean) => update(id, { lida }),
+    toggleStar: (id: string) => {
+      const email = emails.find((e) => e.id === id);
+      if (email) update(id, { favorita: !email.favorita });
+    },
+    remove: (id: string) => {
+      const email = emails.find((e) => e.id === id);
+      if (!email) return;
+      if (email.pasta === "trash") {
+        setEmails((prev) => prev.filter((e) => e.id !== id));
+      } else {
+        update(id, { pasta: "trash" });
+      }
+      if (selectedId === id) setSelectedId(null);
+    },
+    addEmail: (email: Email) => setEmails((prev) => [email, ...prev]),
+  };
+}
+
+export type Mailbox = ReturnType<typeof useMailbox>;
