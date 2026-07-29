@@ -56,7 +56,7 @@ export function Logo({
           <stop offset="100%" stopColor="#00A3FF" />
         </linearGradient>
       </defs>
-      <!-- Outer Rounded M emblem -->
+      {/* Outer Rounded M emblem */}
       <path
         d="M 46 142 V 76 C 46 62 58 52 72 52 C 81 52 90 56 95 64 L 100 72 L 105 64 C 110 56 119 52 128 52 C 142 52 154 62 154 76 V 142"
         stroke="url(#malacaLogoGradInline)"
@@ -64,7 +64,7 @@ export function Logo({
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <!-- Inner envelope fold V chevron -->
+      {/* Inner envelope fold V chevron */}
       <path
         d="M 68 96 L 100 132 L 132 96"
         stroke="url(#malacaLogoGradInline)"
