@@ -5,9 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Malaca Mail — design system
- * Paleta: grafite profundo + azul petróleo + areia quente.
- * Todas as cores em oklch. Nunca usar cores literais em componentes.
+ * Malaca Mail — Design System High-Tech Minimalista
+ * Paleta: Midnight Obsidian + Azul Neon Ciberespaço + Vidro Translúcido.
  */
 
 @theme inline {
@@ -16,10 +15,11 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  --radius-3xl: calc(var(--radius) + 14px);
   --font-sans: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-display: "Inter Tight", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -41,7 +41,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-ring-offset-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-foreground: var(--surface-foreground);
   --color-sidebar: var(--sidebar);
@@ -52,77 +51,83 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --shadow-soft: 0 1px 2px oklch(0.2 0.03 240 / 0.05), 0 8px 24px -12px oklch(0.2 0.03 240 / 0.18);
-  --shadow-lift: 0 2px 4px oklch(0.2 0.03 240 / 0.06), 0 24px 48px -20px oklch(0.2 0.03 240 / 0.28);
+
+  --shadow-glow: 0 0 25px -5px oklch(0.62 0.22 250 / 0.3);
+  --shadow-tech: 0 4px 20px -2px oklch(0 0 0 / 0.4), 0 0 1px 1px oklch(1 0 0 / 0.08);
 }
 
 :root {
-  --radius: 0.875rem;
-  --background: oklch(0.985 0.006 95);
-  --foreground: oklch(0.24 0.02 250);
+  --radius: 0.85rem;
+  
+  /* Light Mode Tech */
+  --background: oklch(0.975 0.005 240);
+  --foreground: oklch(0.18 0.02 250);
   --surface: oklch(1 0 0);
-  --surface-foreground: oklch(0.24 0.02 250);
+  --surface-foreground: oklch(0.18 0.02 250);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.02 250);
+  --card-foreground: oklch(0.18 0.02 250);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.24 0.02 250);
-  --primary: oklch(0.52 0.108 232);
-  --primary-foreground: oklch(0.99 0.005 230);
-  --secondary: oklch(0.955 0.008 240);
-  --secondary-foreground: oklch(0.3 0.02 250);
-  --muted: oklch(0.958 0.007 240);
-  --muted-foreground: oklch(0.53 0.02 250);
-  --accent: oklch(0.93 0.035 210);
-  --accent-foreground: oklch(0.3 0.05 235);
-  --destructive: oklch(0.56 0.2 25);
-  --destructive-foreground: oklch(0.99 0.005 95);
-  --success: oklch(0.62 0.13 155);
-  --success-foreground: oklch(0.99 0.005 95);
-  --border: oklch(0.9 0.008 240);
-  --input: oklch(0.9 0.008 240);
-  --ring: oklch(0.52 0.108 232);
-  --sidebar: oklch(0.972 0.008 95);
-  --sidebar-foreground: oklch(0.3 0.02 250);
-  --sidebar-primary: oklch(0.52 0.108 232);
-  --sidebar-primary-foreground: oklch(0.99 0.005 230);
-  --sidebar-accent: oklch(0.93 0.03 220);
-  --sidebar-accent-foreground: oklch(0.3 0.05 235);
-  --sidebar-border: oklch(0.9 0.008 240);
-  --sidebar-ring: oklch(0.52 0.108 232);
+  --popover-foreground: oklch(0.18 0.02 250);
+  --primary: oklch(0.55 0.21 250);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.94 0.01 240);
+  --secondary-foreground: oklch(0.25 0.02 250);
+  --muted: oklch(0.94 0.008 240);
+  --muted-foreground: oklch(0.5 0.02 250);
+  --accent: oklch(0.92 0.04 240);
+  --accent-foreground: oklch(0.2 0.06 250);
+  --destructive: oklch(0.58 0.22 20);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.62 0.18 150);
+  --success-foreground: oklch(0.99 0 0);
+  --border: oklch(0.89 0.01 240);
+  --input: oklch(0.89 0.01 240);
+  --ring: oklch(0.55 0.21 250);
+
+  --sidebar: oklch(0.96 0.006 240);
+  --sidebar-foreground: oklch(0.25 0.02 250);
+  --sidebar-primary: oklch(0.55 0.21 250);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.92 0.03 240);
+  --sidebar-accent-foreground: oklch(0.2 0.05 250);
+  --sidebar-border: oklch(0.89 0.01 240);
+  --sidebar-ring: oklch(0.55 0.21 250);
 }
 
 .dark {
-  --background: oklch(0.185 0.016 250);
-  --foreground: oklch(0.94 0.008 240);
-  --surface: oklch(0.225 0.018 250);
-  --surface-foreground: oklch(0.94 0.008 240);
-  --card: oklch(0.225 0.018 250);
-  --card-foreground: oklch(0.94 0.008 240);
-  --popover: oklch(0.235 0.018 250);
-  --popover-foreground: oklch(0.94 0.008 240);
-  --primary: oklch(0.72 0.108 225);
-  --primary-foreground: oklch(0.18 0.02 245);
-  --secondary: oklch(0.27 0.018 250);
-  --secondary-foreground: oklch(0.92 0.008 240);
-  --muted: oklch(0.27 0.018 250);
-  --muted-foreground: oklch(0.68 0.015 245);
-  --accent: oklch(0.32 0.04 230);
-  --accent-foreground: oklch(0.92 0.02 230);
-  --destructive: oklch(0.64 0.19 25);
-  --destructive-foreground: oklch(0.98 0.005 95);
-  --success: oklch(0.7 0.13 155);
-  --success-foreground: oklch(0.18 0.02 245);
-  --border: oklch(1 0 0 / 10%);
+  /* Dark Midnight High-Tech Obsidian Mode */
+  --background: oklch(0.12 0.018 250);
+  --foreground: oklch(0.96 0.008 240);
+  --surface: oklch(0.16 0.02 250);
+  --surface-foreground: oklch(0.96 0.008 240);
+  --card: oklch(0.16 0.02 250);
+  --card-foreground: oklch(0.96 0.008 240);
+  --popover: oklch(0.17 0.02 250);
+  --popover-foreground: oklch(0.96 0.008 240);
+  --primary: oklch(0.62 0.22 250);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.2 0.02 250);
+  --secondary-foreground: oklch(0.92 0.01 240);
+  --muted: oklch(0.2 0.02 250);
+  --muted-foreground: oklch(0.62 0.015 245);
+  --accent: oklch(0.25 0.05 250);
+  --accent-foreground: oklch(0.95 0.02 250);
+  --destructive: oklch(0.62 0.22 22);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.68 0.19 152);
+  --success-foreground: oklch(0.1 0 0);
+  --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.72 0.108 225);
-  --sidebar: oklch(0.2 0.017 250);
-  --sidebar-foreground: oklch(0.9 0.008 240);
-  --sidebar-primary: oklch(0.72 0.108 225);
-  --sidebar-primary-foreground: oklch(0.18 0.02 245);
-  --sidebar-accent: oklch(0.3 0.035 230);
-  --sidebar-accent-foreground: oklch(0.92 0.02 230);
+  --ring: oklch(0.62 0.22 250);
+
+  --sidebar: oklch(0.14 0.018 250);
+  --sidebar-foreground: oklch(0.92 0.01 240);
+  --sidebar-primary: oklch(0.62 0.22 250);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.22 0.04 250);
+  --sidebar-accent-foreground: oklch(0.96 0.02 250);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.72 0.108 225);
+  --sidebar-ring: oklch(0.62 0.22 250);
 }
 
 @layer base {
@@ -135,19 +140,39 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
   }
+}
+
+@utility glass-panel {
+  background-color: oklch(from var(--color-surface) l c h / 75%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+}
+
+@utility glass-card {
+  background: linear-gradient(135deg, oklch(from var(--color-surface) l c h / 85%), oklch(from var(--color-surface) l c h / 55%));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid oklch(1 0 0 / 12%);
+  box-shadow: 0 10px 30px -10px oklch(0 0 0 / 0.3);
+}
+
+@utility glow-border {
+  border: 1px solid oklch(from var(--color-primary) l c h / 50%);
+  box-shadow: 0 0 15px -3px oklch(from var(--color-primary) l c h / 0.25);
+}
+
+@utility tech-badge {
+  background: oklch(from var(--color-primary) l c h / 12%);
+  color: var(--color-primary);
+  border: 1px solid oklch(from var(--color-primary) l c h / 30%);
+  font-family: var(--font-mono);
 }
 
 @utility font-display {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
-}
-
-@utility surface-panel {
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-soft);
 }
 
 @utility scrollbar-slim {

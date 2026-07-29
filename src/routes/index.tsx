@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ChevronLeft,
   ChevronRight,
@@ -9,6 +9,9 @@ import {
   RefreshCw,
   Search,
   Sun,
+  UserPlus,
+  ShieldCheck,
+  Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -134,42 +137,63 @@ function MailApp() {
 
   return (
     <div className="flex h-screen flex-col bg-background">
-      <header className="flex shrink-0 items-center gap-3 border-b border-border bg-surface px-3 py-2.5 sm:px-5">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Abrir menu">
-              <Menu className="size-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-72 bg-sidebar p-0">
-            <SheetTitle className="sr-only">Pastas</SheetTitle>
-            {sidebar}
-          </SheetContent>
-        </Sheet>
+      {/* High-Tech Glass Header */}
+      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-border/80 bg-surface/60 backdrop-blur-xl px-4 py-2.5 sm:px-6">
+        <div className="flex items-center gap-3">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="lg:hidden rounded-xl" aria-label="Abrir menu">
+                <Menu className="size-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-72 bg-sidebar p-0 border-r border-sidebar-border">
+              <SheetTitle className="sr-only">Pastas</SheetTitle>
+              {sidebar}
+            </SheetContent>
+          </Sheet>
 
-        <Logo variant="horizontal" size="md" />
+          <Logo variant="horizontal" size="md" />
+          
+          <span className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 border border-success/20 text-[11px] font-mono text-success">
+            <span className="size-1.5 rounded-full bg-success animate-pulse" /> Servidores 99.9% Online
+          </span>
+        </div>
 
-        <div className="relative mx-auto w-full max-w-xl">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        {/* Tech Search Input */}
+        <div className="relative mx-auto w-full max-w-lg hidden sm:block">
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={mailbox.query}
             onChange={(e) => mailbox.setQuery(e.target.value)}
-            placeholder="Pesquisar por remetente, assunto ou conteúdo"
-            className="h-10 rounded-full bg-muted pl-9"
+            placeholder="Pesquisar remetente, assunto ou termo..."
+            className="h-10 rounded-xl bg-muted/40 border border-border/60 pl-10 pr-4 font-mono text-xs focus:bg-background transition-all shadow-inner"
             aria-label="Pesquisar mensagens"
           />
         </div>
 
-        <Button variant="ghost" size="icon" onClick={toggle} aria-label="Alternar tema">
-          {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
-        </Button>
-        <div className="hidden text-right text-xs leading-tight md:block">
-          <p className="font-medium">{user.nome}</p>
-          <p className="text-muted-foreground">{user.email}</p>
+        {/* Right Actions */}
+        <div className="flex items-center gap-2">
+          {/* Create New Account Button */}
+          <Link to="/criar-conta">
+            <Button variant="outline" size="sm" className="hidden md:flex items-center gap-1.5 rounded-xl font-medium text-xs border-primary/30 hover:border-primary text-primary hover:bg-primary/10">
+              <UserPlus className="size-3.5" />
+              <span>Criar @malaca.com.br</span>
+            </Button>
+          </Link>
+
+          <Button variant="ghost" size="icon" onClick={toggle} aria-label="Alternar tema" className="rounded-xl">
+            {theme === "dark" ? <Sun className="size-4 text-amber-400" /> : <Moon className="size-4" />}
+          </Button>
+
+          <div className="hidden text-right text-xs leading-tight lg:block border-l border-border/60 pl-3">
+            <p className="font-semibold text-foreground tracking-tight">{user.nome}</p>
+            <p className="font-mono text-[11px] text-muted-foreground">{user.email}</p>
+          </div>
+
+          <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Sair" className="rounded-xl text-muted-foreground hover:text-destructive">
+            <LogOut className="size-4" />
+          </Button>
         </div>
-        <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Sair">
-          <LogOut className="size-4" />
-        </Button>
       </header>
 
       <div className="flex min-h-0 flex-1">

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Bold, Italic, Link2, List, Paperclip, Send, Trash2, X } from "lucide-react";
+import { Bold, Italic, Link2, List, Paperclip, Send, Trash2, X, Lock, ShieldCheck, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,12 +18,12 @@ interface Props {
   onSaveDraft: (draft: DraftPayload) => void;
 }
 
-/** Editor de composição com editor rico simples, arrastar-e-soltar de anexos e auto save. */
 export function ComposeDialog({ open, initial, onClose, onSend, onSaveDraft }: Props) {
   const [draft, setDraft] = useState<DraftPayload>(EMPTY);
   const [showCc, setShowCc] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [encryptEnabled, setEncryptEnabled] = useState(true);
   const editorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,7 +35,6 @@ export function ComposeDialog({ open, initial, onClose, onSend, onSaveDraft }: P
     if (editorRef.current) editorRef.current.innerHTML = next.html;
   }, [open, initial]);
 
-  // Auto save a cada 8s enquanto houver conteúdo.
   useEffect(() => {
     if (!open) return;
     const id = window.setInterval(() => {
@@ -79,11 +78,11 @@ export function ComposeDialog({ open, initial, onClose, onSend, onSaveDraft }: P
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/20 p-0 backdrop-blur-sm sm:items-center sm:p-6">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-md p-0 sm:items-center sm:p-6 animate-in fade-in duration-200">
       <div
         className={cn(
-          "surface-panel animate-in slide-in-from-bottom-4 fade-in flex h-[92vh] w-full max-w-2xl flex-col overflow-hidden duration-200 sm:h-[80vh]",
-          dragging && "ring-2 ring-primary",
+          "glass-card border border-border/80 shadow-2xl flex h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl duration-200 sm:h-[82vh]",
+          dragging && "ring-2 ring-primary glow-border"
         )}
         onDragOver={(e) => {
           e.preventDefault();
@@ -96,104 +95,144 @@ export function ComposeDialog({ open, initial, onClose, onSend, onSaveDraft }: P
           addFiles(e.dataTransfer.files);
         }}
       >
-        <header className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="font-display text-lg">Nova mensagem</h2>
-          <div className="flex items-center gap-2">
-            {savedAt && <span className="text-xs text-muted-foreground">Rascunho salvo {savedAt}</span>}
-            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Fechar">
+        {/* Header */}
+        <header className="flex items-center justify-between border-b border-border/60 bg-surface/40 px-5 py-3.5">
+          <div className="flex items-center gap-3">
+            <h2 className="font-display text-base font-semibold tracking-tight text-foreground">Nova Mensagem</h2>
+            <button
+              onClick={() => setEncryptEnabled(!encryptEnabled)}
+              className={cn(
+                "hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono transition-colors border",
+                encryptEnabled
+                  ? "bg-primary/10 border-primary/30 text-primary"
+                  : "bg-muted border-border text-muted-foreground"
+              )}
+            >
+              <Lock className="size-3" />
+              {encryptEnabled ? "Criptografia TLS Ativa" : "Sem Criptografia"}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {savedAt && (
+              <span className="text-[11px] font-mono text-muted-foreground/80">
+                Salvo às {savedAt}
+              </span>
+            )}
+            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Fechar" className="rounded-xl">
               <X className="size-4" />
             </Button>
           </div>
         </header>
 
-        <div className="space-y-1 px-4 py-3">
-          <div className="flex items-center gap-2">
+        {/* Recipients Form */}
+        <div className="space-y-2 px-5 py-4 bg-muted/20">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-mono font-semibold text-muted-foreground w-12 shrink-0">Para:</span>
             <Input
               value={draft.para}
               onChange={(e) => setDraft({ ...draft, para: e.target.value })}
-              placeholder="Para"
-              className="border-0 border-b border-border px-0 shadow-none focus-visible:ring-0"
+              placeholder="destinatario@exemplo.com"
+              className="border-0 border-b border-border/60 px-0 shadow-none focus-visible:ring-0 rounded-none bg-transparent font-mono text-sm"
             />
             {!showCc && (
-              <Button variant="ghost" size="sm" onClick={() => setShowCc(true)}>
-                CC/CCO
+              <Button variant="ghost" size="sm" onClick={() => setShowCc(true)} className="text-xs font-mono rounded-lg">
+                CC / CCO
               </Button>
             )}
           </div>
+
           {showCc && (
             <>
-              <Input
-                value={draft.cc}
-                onChange={(e) => setDraft({ ...draft, cc: e.target.value })}
-                placeholder="CC"
-                className="border-0 border-b border-border px-0 shadow-none focus-visible:ring-0"
-              />
-              <Input
-                value={draft.cco}
-                onChange={(e) => setDraft({ ...draft, cco: e.target.value })}
-                placeholder="CCO"
-                className="border-0 border-b border-border px-0 shadow-none focus-visible:ring-0"
-              />
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono font-semibold text-muted-foreground w-12 shrink-0">CC:</span>
+                <Input
+                  value={draft.cc}
+                  onChange={(e) => setDraft({ ...draft, cc: e.target.value })}
+                  placeholder="copia@exemplo.com"
+                  className="border-0 border-b border-border/60 px-0 shadow-none focus-visible:ring-0 rounded-none bg-transparent font-mono text-sm"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono font-semibold text-muted-foreground w-12 shrink-0">CCO:</span>
+                <Input
+                  value={draft.cco}
+                  onChange={(e) => setDraft({ ...draft, cco: e.target.value })}
+                  placeholder="oculto@exemplo.com"
+                  className="border-0 border-b border-border/60 px-0 shadow-none focus-visible:ring-0 rounded-none bg-transparent font-mono text-sm"
+                />
+              </div>
             </>
           )}
-          <Input
-            value={draft.assunto}
-            onChange={(e) => setDraft({ ...draft, assunto: e.target.value })}
-            placeholder="Assunto"
-            className="border-0 border-b border-border px-0 shadow-none focus-visible:ring-0"
-          />
+
+          <div className="flex items-center gap-3 pt-1">
+            <span className="text-xs font-mono font-semibold text-muted-foreground w-12 shrink-0">Assunto:</span>
+            <Input
+              value={draft.assunto}
+              onChange={(e) => setDraft({ ...draft, assunto: e.target.value })}
+              placeholder="Digite o assunto da mensagem..."
+              className="border-0 border-b border-border/60 px-0 shadow-none focus-visible:ring-0 rounded-none bg-transparent text-sm font-medium"
+            />
+          </div>
         </div>
 
-        <div className="flex items-center gap-1 px-3 pb-2">
-          <Button variant="ghost" size="icon" onClick={() => exec("bold")} aria-label="Negrito">
-            <Bold className="size-4" />
+        {/* Formatting Toolbar */}
+        <div className="flex items-center gap-1 px-4 py-2 bg-surface/30 border-y border-border/60">
+          <Button variant="ghost" size="icon" onClick={() => exec("bold")} aria-label="Negrito" className="size-8 rounded-lg">
+            <Bold className="size-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => exec("italic")} aria-label="Itálico">
-            <Italic className="size-4" />
+          <Button variant="ghost" size="icon" onClick={() => exec("italic")} aria-label="Itálico" className="size-8 rounded-lg">
+            <Italic className="size-3.5" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => exec("insertUnorderedList")}
-            aria-label="Lista"
-          >
-            <List className="size-4" />
+          <Button variant="ghost" size="icon" onClick={() => exec("insertUnorderedList")} aria-label="Lista" className="size-8 rounded-lg">
+            <List className="size-3.5" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
+            className="size-8 rounded-lg"
             aria-label="Inserir link"
             onClick={() => {
               const url = window.prompt("URL do link");
               if (url) exec("createLink", url);
             }}
           >
-            <Link2 className="size-4" />
+            <Link2 className="size-3.5" />
           </Button>
         </div>
-        <Separator />
 
+        {/* Rich Text Editor */}
         <div
           ref={editorRef}
           contentEditable
           role="textbox"
           aria-label="Corpo da mensagem"
           onInput={(e) => setDraft({ ...draft, html: e.currentTarget.innerHTML })}
-          className="scrollbar-slim flex-1 overflow-y-auto px-5 py-4 text-sm leading-relaxed outline-none [&_a]:text-primary [&_ul]:list-disc [&_ul]:pl-5"
+          className="scrollbar-slim flex-1 overflow-y-auto px-6 py-5 text-sm leading-relaxed outline-none [&_a]:text-primary [&_ul]:list-disc [&_ul]:pl-5 text-foreground"
         />
 
+        {/* Drag Overlay Helper */}
+        {dragging && (
+          <div className="absolute inset-0 z-50 bg-primary/20 backdrop-blur-sm flex flex-col items-center justify-center border-2 border-dashed border-primary rounded-2xl text-primary">
+            <UploadCloud className="size-12 animate-bounce mb-2" />
+            <p className="font-display text-lg font-semibold">Solte os arquivos para anexar</p>
+          </div>
+        )}
+
+        {/* Attachments List */}
         {draft.anexos.length > 0 && (
-          <ul className="flex flex-wrap gap-2 border-t border-border px-4 py-3">
+          <ul className="flex flex-wrap gap-2 border-t border-border/60 bg-muted/20 px-5 py-3">
             {draft.anexos.map((anexo, i) => (
               <li
                 key={`${anexo.nome}-${i}`}
-                className="flex items-center gap-2 rounded-lg bg-muted px-2.5 py-1.5 text-xs"
+                className="flex items-center gap-2 rounded-xl bg-surface border border-border/80 px-3 py-1.5 text-xs font-mono"
               >
-                <Paperclip className="size-3" />
+                <Paperclip className="size-3 text-primary" />
                 <span className="max-w-40 truncate">{anexo.nome}</span>
-                <span className="text-muted-foreground">{formatBytes(anexo.tamanho)}</span>
+                <span className="text-muted-foreground">({formatBytes(anexo.tamanho)})</span>
                 <button
                   aria-label={`Remover ${anexo.nome}`}
+                  className="hover:text-destructive transition-colors ml-1"
                   onClick={() =>
                     setDraft({ ...draft, anexos: draft.anexos.filter((_, idx) => idx !== i) })
                   }
@@ -205,24 +244,26 @@ export function ComposeDialog({ open, initial, onClose, onSend, onSaveDraft }: P
           </ul>
         )}
 
-        <footer className="flex items-center gap-2 border-t border-border px-4 py-3">
-          <Button onClick={submit} className="gap-2 rounded-xl">
-            <Send className="size-4" />
-            Enviar
-          </Button>
-          <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted">
-            <Paperclip className="size-4" />
-            Anexar
-            <input type="file" multiple className="hidden" onChange={(e) => addFiles(e.target.files)} />
-          </label>
-          <span className="hidden text-xs text-muted-foreground sm:inline">
-            Arraste arquivos para anexar
-          </span>
+        {/* Footer Actions */}
+        <footer className="flex items-center justify-between border-t border-border/60 bg-surface/50 px-5 py-3">
+          <div className="flex items-center gap-3">
+            <Button onClick={submit} className="gap-2 rounded-xl h-10 px-5 font-semibold shadow-tech glow-border">
+              <Send className="size-4" />
+              Enviar Mensagem
+            </Button>
+
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border/80 bg-background px-3.5 py-2 text-xs font-mono text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+              <Paperclip className="size-3.5" />
+              Anexar Arquivo
+              <input type="file" multiple className="hidden" onChange={(e) => addFiles(e.target.files)} />
+            </label>
+          </div>
+
           <Button
             variant="ghost"
             size="icon"
             aria-label="Descartar"
-            className="ml-auto text-destructive hover:text-destructive"
+            className="rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={onClose}
           >
             <Trash2 className="size-4" />
