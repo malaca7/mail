@@ -18,6 +18,7 @@ import { FOLDERS, FolderNav } from "@/components/mail/folder-nav";
 import { MessageList } from "@/components/mail/message-list";
 import { MessageView } from "@/components/mail/message-view";
 import { ComposeDialog } from "@/components/mail/compose-dialog";
+import { Logo } from "@/components/logo";
 import { useMailbox } from "@/hooks/use-mailbox";
 import { useTheme } from "@/hooks/use-theme";
 import { getSession, signOut } from "@/lib/mail/session";
@@ -146,12 +147,7 @@ function MailApp() {
           </SheetContent>
         </Sheet>
 
-        <div className="flex items-center gap-2">
-          <span className="grid size-8 place-items-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
-            M
-          </span>
-          <span className="font-display hidden text-lg sm:block">Malaca Mail</span>
-        </div>
+        <Logo variant="horizontal" size="md" />
 
         <div className="relative mx-auto w-full max-w-xl">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />

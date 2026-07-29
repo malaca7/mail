@@ -4,6 +4,7 @@ import { Lock, Mail, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Logo } from "@/components/logo";
 import { DEMO_ACCOUNT, signIn } from "@/lib/mail/session";
 
 export const Route = createFileRoute("/login")({
@@ -48,14 +49,12 @@ function LoginPage() {
 
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
-      <section className="hidden flex-col justify-between bg-sidebar p-12 lg:flex">
-        <div className="flex items-center gap-2">
-          <span className="grid size-9 place-items-center rounded-xl bg-primary text-sm font-bold text-primary-foreground">
-            M
-          </span>
-          <span className="font-display text-lg">Malaca Mail</span>
-        </div>
+      <section className="hidden flex-col justify-between bg-sidebar p-12 lg:flex border-r border-sidebar-border">
+        <Logo variant="horizontal" size="lg" />
         <div className="max-w-md">
+          <div className="mb-6 inline-block">
+            <Logo variant="icon" size="xl" />
+          </div>
           <h2 className="font-display text-4xl leading-tight">
             Seu e-mail, no seu domínio, no seu servidor.
           </h2>
@@ -77,6 +76,7 @@ function LoginPage() {
 
       <section className="flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-sm">
+          <Logo variant="horizontal" size="md" className="mb-6 lg:hidden" />
           <h1 className="font-display text-3xl">Entrar</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Use seu endereço completo e a senha da conta.

@@ -4,6 +4,7 @@ import { ArrowLeft, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Logo } from "@/components/logo";
 
 export const Route = createFileRoute("/recuperar-senha")({
   head: () => ({
@@ -30,15 +31,18 @@ function RecoveryPage() {
   const [enviado, setEnviado] = useState(false);
 
   return (
-    <main className="flex min-h-screen items-center justify-center p-6">
-      <div className="surface-panel w-full max-w-md p-8">
-        <Link
-          to="/login"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" />
-          Voltar ao login
-        </Link>
+    <main className="flex min-h-screen items-center justify-center p-6 bg-background">
+      <div className="surface-panel w-full max-w-md p-8 border border-border rounded-2xl">
+        <div className="flex items-center justify-between mb-6">
+          <Link
+            to="/login"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="size-4" />
+            Voltar ao login
+          </Link>
+          <Logo variant="icon" size="sm" />
+        </div>
 
         {enviado ? (
           <div className="mt-6 text-center">
