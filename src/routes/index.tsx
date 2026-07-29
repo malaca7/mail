@@ -61,8 +61,7 @@ function MailApp() {
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
   const mailbox = useMailbox();
-  const [user, setUser] = useState<User | null>(null);
-  const [checked, setChecked] = useState(false);
+  const [user, setUser] = useState<User | null>(() => getSession());
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeInitial, setComposeInitial] = useState<Partial<DraftPayload>>({});
 
@@ -70,10 +69,9 @@ function MailApp() {
     const session = getSession();
     if (!session) {
       navigate({ to: "/login", replace: true });
-      return;
+    } else {
+      setUser(session);
     }
-    setUser(session);
-    setChecked(true);
   }, [navigate]);
 
   const folderLabel = useMemo(
@@ -81,7 +79,18 @@ function MailApp() {
     [mailbox.folder],
   );
 
-  if (!checked || !user) return null;
+  if (!user) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-background p-6">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <Logo variant="icon" size="xl" />
+          <p className="font-mono text-sm text-muted-foreground animate-pulse">
+            Carregando Malaca Mail...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const openCompose = (initial: Partial<DraftPayload> = {}) => {
     setComposeInitial(initial);
