@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Lock, Mail, ShieldCheck, UserPlus, Sparkles } from "lucide-react";
+import { Lock, Mail, ShieldCheck, UserPlus, Sparkles, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/logo";
+import { useTheme } from "@/hooks/use-theme";
 import { DEMO_ACCOUNT, signIn } from "@/lib/mail/session";
 
 export const Route = createFileRoute("/login")({
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { theme, toggle: toggleTheme } = useTheme();
   const [email, setEmail] = useState(DEMO_ACCOUNT.email);
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState<string | null>(null);
@@ -56,10 +58,21 @@ function LoginPage() {
 
         <div className="relative z-10 flex items-center justify-between">
           <Logo variant="horizontal" size="lg" />
-          <span className="tech-badge px-3 py-1 rounded-full text-xs flex items-center gap-1.5">
-            <span className="size-2 rounded-full bg-success animate-pulse" />
-            IMAP / SMTP 100% Online
-          </span>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="rounded-full hover:bg-muted"
+              title={theme === "dark" ? "Mudar para modo claro" : "Mudar para modo escuro"}
+            >
+              {theme === "dark" ? <Sun className="size-5 text-amber-400" /> : <Moon className="size-5 text-slate-700" />}
+            </Button>
+            <span className="tech-badge px-3 py-1 rounded-full text-xs flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-success animate-pulse" />
+              IMAP / SMTP 100% Online
+            </span>
+          </div>
         </div>
 
         <div className="relative z-10 max-w-md">

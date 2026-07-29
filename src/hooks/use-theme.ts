@@ -4,21 +4,36 @@ const KEY = "malaca-mail:theme";
 export type Theme = "light" | "dark";
 
 export function useTheme() {
-  const [theme, setTheme] = useState<Theme>("light");
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(KEY) as Theme | null;
-    const initial =
-      stored ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-    setTheme(initial);
-  }, []);
+  // Default to "dark" theme, fallback to localStorage if explicitly set by user
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window === "undefined") return "dark";
+    try {
+      const stored = window.localStorage.getItem(KEY) as Theme | null;
+      if (stored === "light" || stored === "dark") {
+        return stored;
+      }
+    } catch {
+      // ignore localStorage errors
+    }
+    return "dark";
+  });
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
-    window.localStorage.setItem(KEY, theme);
+    try {
+      window.localStorage.setItem(KEY, theme);
+    } catch {
+      // ignore
+    }
   }, [theme]);
 
-  const toggle = useCallback(() => setTheme((t) => (t === "dark" ? "light" : "dark")), []);
+  const toggle = useCallback(() => {
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
+  }, []);
 
-  return { theme, toggle };
+  const setThemeExplicit = useCallback((newTheme: Theme) => {
+    setTheme(newTheme);
+  }, []);
+
+  return { theme, toggle, setTheme: setThemeExplicit };
 }

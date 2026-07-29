@@ -1,6 +1,18 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
   <head>
+    <script>
+      (function() {
+        try {
+          var t = localStorage.getItem('malaca-mail:theme');
+          if (t === 'light') {
+            document.documentElement.classList.remove('dark');
+          } else {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Malaca Mail — Webmail Privado (@malaca.com.br)</title>
