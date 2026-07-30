@@ -152,6 +152,36 @@ export function saveUserEmails(user: User, emails: Email[]): void {
   }
 }
 
+export function deliverEmail(email: Email): void {
+  if (typeof window === "undefined") return;
+
+  const accounts = getAllAccounts();
+  const recipientEmails = [
+    ...email.destinatarios.map((d) => d.email.toLowerCase()),
+    ...(email.cc?.map((c) => c.email.toLowerCase()) ?? []),
+  ];
+
+  for (const recipientEmail of recipientEmails) {
+    const foundAcc = accounts.find((acc) => acc.email.toLowerCase() === recipientEmail);
+    if (foundAcc) {
+      const recipientKey = `${EMAILS_PREFIX}${foundAcc.id}`;
+      try {
+        const raw = window.localStorage.getItem(recipientKey);
+        const existing: Email[] = raw ? JSON.parse(raw) : [];
+        const incomingEmail: Email = {
+          ...email,
+          id: "e_in_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
+          lida: false,
+          pasta: "inbox",
+        };
+        window.localStorage.setItem(recipientKey, JSON.stringify([incomingEmail, ...existing]));
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
+
 function seedWelcomeEmail(user: User) {
   const key = `${EMAILS_PREFIX}${user.id}`;
   const welcomeMessage: Email = {

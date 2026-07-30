@@ -24,7 +24,7 @@ import { ComposeDialog } from "@/components/mail/compose-dialog";
 import { Logo } from "@/components/logo";
 import { useMailbox } from "@/hooks/use-mailbox";
 import { useTheme } from "@/hooks/use-theme";
-import { getSession, signOut } from "@/lib/mail/session";
+import { getSession, signOut, deliverEmail } from "@/lib/mail/session";
 import type { DraftPayload, Email, User } from "@/lib/mail/types";
 import { cn } from "@/lib/utils";
 import { LoginPage } from "./login";
@@ -119,6 +119,7 @@ function MailApp() {
       })),
     };
     mailbox.addEmail(email);
+    deliverEmail(email);
     setComposeOpen(false);
     toast.success("Mensagem enviada via smtp.malaca.com.br");
   };
