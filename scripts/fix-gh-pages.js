@@ -19,8 +19,8 @@ if (!cssFile || !jsFile) {
   process.exit(1);
 }
 
-console.log(`[fix-gh-pages] Found CSS: /assets/${cssFile}`);
-console.log(`[fix-gh-pages] Found JS: /assets/${jsFile}`);
+console.log(`[fix-gh-pages] Found CSS: assets/${cssFile}`);
+console.log(`[fix-gh-pages] Found JS: assets/${jsFile}`);
 
 const htmlContent = `<!DOCTYPE html>
 <html lang="pt-BR" class="dark">
@@ -40,15 +40,15 @@ const htmlContent = `<!DOCTYPE html>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Malaca Mail — Webmail Privado (@malaca.com.br)</title>
-    <link rel="icon" type="image/svg+xml" href="/logo-icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="logo-icon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" crossorigin href="/assets/${cssFile}" />
+    <link rel="stylesheet" href="assets/${cssFile}" />
   </head>
   <body class="bg-background text-foreground antialiased">
     <div id="root"></div>
-    <script type="module" crossorigin src="/assets/${jsFile}"></script>
+    <script type="module" src="assets/${jsFile}"></script>
   </body>
 </html>
 `;
@@ -57,14 +57,19 @@ const htmlContent = `<!DOCTYPE html>
 fs.writeFileSync(path.join(publicDir, "index.html"), htmlContent, "utf-8");
 fs.writeFileSync(path.join(publicDir, "404.html"), htmlContent, "utf-8");
 
-// Write to route directories if they exist
+// Write to route directories if they exist with relative ../ asset paths
+const subHtmlContent = htmlContent
+  .replace('href="assets/', 'href="../assets/')
+  .replace('src="assets/', 'src="../assets/')
+  .replace('href="logo-icon.svg"', 'href="../logo-icon.svg"');
+
 const subdirs = ["login", "criar-conta", "recuperar-senha"];
 for (const sub of subdirs) {
   const dirPath = path.join(publicDir, sub);
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
   }
-  fs.writeFileSync(path.join(dirPath, "index.html"), htmlContent, "utf-8");
+  fs.writeFileSync(path.join(dirPath, "index.html"), subHtmlContent, "utf-8");
 }
 
-console.log("[fix-gh-pages] Successfully updated HTML files with production asset bundles!");
+console.log("[fix-gh-pages] Successfully updated HTML files with clean asset link tags!");
