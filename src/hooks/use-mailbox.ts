@@ -1,15 +1,31 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { mockEmails } from "@/lib/mail/mock-data";
-import type { Email, FolderId } from "@/lib/mail/types";
+import { getUserEmails, saveUserEmails } from "@/lib/mail/session";
+import type { Email, FolderId, User } from "@/lib/mail/types";
 
 const PAGE_SIZE = 6;
 
-/**
- * Estado central do webmail. Hoje opera sobre dados mock em memória;
- * ao plugar o backend, cada mutação vira uma mutation do React Query.
- */
-export function useMailbox() {
-  const [emails, setEmails] = useState<Email[]>(mockEmails);
+export function useMailbox(user?: User | null) {
+  const [emails, setEmailsState] = useState<Email[]>(() => {
+    return user ? getUserEmails(user) : mockEmails;
+  });
+
+  useEffect(() => {
+    if (user) {
+      setEmailsState(getUserEmails(user));
+    }
+  }, [user?.id]);
+
+  const setEmails = (action: React.SetStateAction<Email[]>) => {
+    setEmailsState((prev) => {
+      const next = typeof action === "function" ? action(prev) : action;
+      if (user) {
+        saveUserEmails(user, next);
+      }
+      return next;
+    });
+  };
+
   const [folder, setFolderState] = useState<FolderId>("inbox");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);

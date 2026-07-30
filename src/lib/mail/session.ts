@@ -126,6 +126,32 @@ export function signOut() {
   window.localStorage.removeItem(SESSION_KEY);
 }
 
+export function getUserEmails(user: User): Email[] {
+  if (typeof window === "undefined") return mockEmails;
+  const key = `${EMAILS_PREFIX}${user.id}`;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (raw) {
+      return JSON.parse(raw) as Email[];
+    }
+    seedWelcomeEmail(user);
+    const updatedRaw = window.localStorage.getItem(key);
+    return updatedRaw ? JSON.parse(updatedRaw) : mockEmails;
+  } catch {
+    return mockEmails;
+  }
+}
+
+export function saveUserEmails(user: User, emails: Email[]): void {
+  if (typeof window === "undefined") return;
+  const key = `${EMAILS_PREFIX}${user.id}`;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(emails));
+  } catch {
+    // ignore
+  }
+}
+
 function seedWelcomeEmail(user: User) {
   const key = `${EMAILS_PREFIX}${user.id}`;
   const welcomeMessage: Email = {

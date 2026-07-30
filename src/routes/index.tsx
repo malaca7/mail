@@ -67,8 +67,8 @@ function parseAddresses(value: string) {
 function MailApp() {
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
-  const mailbox = useMailbox();
   const [user, setUser] = useState<User | null>(() => getSession());
+  const mailbox = useMailbox(user);
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeInitial, setComposeInitial] = useState<Partial<DraftPayload>>({});
 
