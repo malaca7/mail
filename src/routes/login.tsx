@@ -42,7 +42,7 @@ export function LoginPage() {
     setLoading(true);
     try {
       signIn(email, senha);
-      navigate({ to: "/", replace: true });
+      window.location.href = "/";
     } catch (error) {
       setErro((error as Error).message);
       setLoading(false);

@@ -87,7 +87,7 @@ function CreateAccountPage() {
       });
 
       toast.success(`Conta ${user.email} criada com sucesso!`);
-      navigate({ to: "/", replace: true });
+      window.location.href = "/";
     } catch (err) {
       setErro((err as Error).message);
       setLoading(false);

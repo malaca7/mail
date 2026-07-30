@@ -89,7 +89,14 @@ function MailApp() {
   );
 
   if (!user) {
-    return <LoginPage />;
+    return (
+      <div className="grid min-h-screen place-items-center bg-background">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="size-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm font-mono text-muted-foreground">Carregando Malaca Mail...</p>
+        </div>
+      </div>
+    );
   }
 
   const openCompose = (initial: Partial<DraftPayload> = {}) => {
