@@ -28,6 +28,12 @@ export interface EmailAddress {
   email: string;
 }
 
+export interface SecurityHeaders {
+  spf?: "pass" | "fail" | "softfail" | "neutral" | "none";
+  dkim?: "pass" | "fail" | "none";
+  dmarc?: "pass" | "fail" | "none";
+}
+
 export interface Email {
   id: string;
   message_id: string;
@@ -44,6 +50,12 @@ export interface Email {
   favorita: boolean;
   pasta: FolderId;
   anexos: Attachment[];
+  /** Spam score atribuído pelo filtro SpamAssassin */
+  spamScore?: number;
+  /** Detalhes das regras de spam que foram acionadas */
+  spamDetails?: string;
+  /** Headers de autenticação (SPF/DKIM/DMARC) */
+  securityHeaders?: SecurityHeaders;
 }
 
 export interface DraftPayload {

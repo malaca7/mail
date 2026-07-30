@@ -63,7 +63,7 @@ const subHtmlContent = htmlContent
   .replace('src="assets/', 'src="../assets/')
   .replace('href="logo-icon.svg"', 'href="../logo-icon.svg"');
 
-const subdirs = ["login", "criar-conta", "recuperar-senha"];
+const subdirs = ["login", "criar-conta", "recuperar-senha", "admin"];
 for (const sub of subdirs) {
   const dirPath = path.join(publicDir, sub);
   if (!fs.existsSync(dirPath)) {

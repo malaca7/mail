@@ -21,7 +21,7 @@ export default defineConfig({
   nitro: {
     prerender: {
       crawlLinks: true,
-      routes: ["/", "/login", "/criar-conta", "/recuperar-senha"],
+      routes: ["/", "/login", "/criar-conta", "/recuperar-senha", "/admin"],
     },
   },
 });

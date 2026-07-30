@@ -1,5 +1,6 @@
 import type { User, Email } from "./types";
 import { mockEmails } from "./mock-data";
+import { analyzeEmail } from "./spam-filter";
 
 const SESSION_KEY = "malaca-mail:session";
 const ACCOUNTS_KEY = "malaca-mail:accounts";
@@ -19,6 +20,7 @@ export interface StoredAccount extends User {
   avatarUrl?: string;
   quotaUsadaBytes?: number;
   quotaTotalBytes?: number;
+  suspended?: boolean;
 }
 
 export function getAllAccounts(): StoredAccount[] {
@@ -110,6 +112,10 @@ export function signIn(emailInput: string, senhaInput: string): User {
     throw new Error("E-mail ou senha incorretos.");
   }
 
+  if (found.suspended) {
+    throw new Error("Esta conta está suspensa. Entre em contato com o administrador.");
+  }
+
   const user: User = {
     id: found.id,
     nome: found.nome,
@@ -161,9 +167,12 @@ export function deliverEmail(email: Email): void {
     ...(email.cc?.map((c) => c.email.toLowerCase()) ?? []),
   ];
 
+  // Run spam analysis
+  const spamResult = analyzeEmail(email);
+
   for (const recipientEmail of recipientEmails) {
     const foundAcc = accounts.find((acc) => acc.email.toLowerCase() === recipientEmail);
-    if (foundAcc) {
+    if (foundAcc && !foundAcc.suspended) {
       const recipientKey = `${EMAILS_PREFIX}${foundAcc.id}`;
       try {
         const raw = window.localStorage.getItem(recipientKey);
@@ -172,7 +181,14 @@ export function deliverEmail(email: Email): void {
           ...email,
           id: "e_in_" + Date.now() + "_" + Math.random().toString(36).substring(2, 6),
           lida: false,
-          pasta: "inbox",
+          pasta: spamResult.isSpam ? "spam" : "inbox",
+          spamScore: spamResult.score,
+          spamDetails: spamResult.matchedRules.map((r) => `${r.ruleName} (+${r.score})`).join(", ") || undefined,
+          securityHeaders: {
+            spf: "pass",
+            dkim: "pass",
+            dmarc: "pass",
+          },
         };
         window.localStorage.setItem(recipientKey, JSON.stringify([incomingEmail, ...existing]));
       } catch {
@@ -180,6 +196,42 @@ export function deliverEmail(email: Email): void {
       }
     }
   }
+}
+
+// ── Admin Helpers ──
+
+export function updateAccount(accountId: string, patch: Partial<StoredAccount>): void {
+  if (typeof window === "undefined") return;
+  const accounts = getAllAccounts();
+  const updated = accounts.map((acc) => (acc.id === accountId ? { ...acc, ...patch } : acc));
+  window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(updated));
+}
+
+export function deleteAccount(accountId: string): void {
+  if (typeof window === "undefined") return;
+  const accounts = getAllAccounts().filter((acc) => acc.id !== accountId && acc.id !== DEMO_ACCOUNT.id);
+  window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+  // Remove mailbox data
+  window.localStorage.removeItem(`${EMAILS_PREFIX}${accountId}`);
+}
+
+export function getAccountStats() {
+  if (typeof window === "undefined") return { totalAccounts: 1, totalEmails: 0, totalStorageBytes: 0 };
+  const accounts = getAllAccounts();
+  let totalEmails = 0;
+  let totalStorageBytes = 0;
+  for (const acc of accounts) {
+    const key = `${EMAILS_PREFIX}${acc.id}`;
+    const raw = window.localStorage.getItem(key);
+    if (raw) {
+      try {
+        const emails = JSON.parse(raw) as Email[];
+        totalEmails += emails.length;
+        totalStorageBytes += raw.length * 2; // rough estimate (UTF-16)
+      } catch { /* ignore */ }
+    }
+  }
+  return { totalAccounts: accounts.length, totalEmails, totalStorageBytes };
 }
 
 function seedWelcomeEmail(user: User) {
