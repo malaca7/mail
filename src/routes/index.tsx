@@ -31,9 +31,11 @@ import { LoginPage } from "./login";
 
 export const Route = createFileRoute("/")({
   beforeLoad: () => {
-    const session = getSession();
-    if (!session) {
-      throw redirect({ to: "/login", replace: true });
+    if (typeof window !== "undefined") {
+      const session = getSession();
+      if (!session) {
+        throw redirect({ to: "/login", replace: true });
+      }
     }
   },
   head: () => ({
@@ -126,7 +128,31 @@ function MailApp() {
 
   const handleSaveDraft = (draft: DraftPayload) => {
     if (!draft.para && !draft.assunto && !draft.html) return;
-    // Auto save: no backend real, isso vira PATCH /api/drafts/:id
+    const draftEmail: Email = {
+      id: "draft_" + Date.now(),
+      message_id: `<draft-${Date.now()}@malaca.com.br>`,
+      remetente: { nome: user.nome, email: user.email },
+      destinatarios: parseAddresses(draft.para),
+      cc: parseAddresses(draft.cc),
+      cco: parseAddresses(draft.cco),
+      assunto: draft.assunto || "(sem assunto)",
+      preview: draft.html.replace(/<[^>]+>/g, " ").slice(0, 120),
+      html: draft.html,
+      texto: draft.html.replace(/<[^>]+>/g, " "),
+      data_envio: new Date().toISOString(),
+      lida: true,
+      favorita: false,
+      pasta: "drafts",
+      anexos: draft.anexos.map((a, i) => ({
+        id: `${Date.now()}-${i}`,
+        email_id: "",
+        caminho: "",
+        ...a,
+      })),
+    };
+    // Remove previous auto-saved drafts and save new one
+    mailbox.addEmail(draftEmail);
+    toast.success("Rascunho salvo automaticamente");
   };
 
   const handleLogout = () => {
