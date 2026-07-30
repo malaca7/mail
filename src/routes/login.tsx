@@ -28,7 +28,7 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-function LoginPage() {
+export function LoginPage() {
   const navigate = useNavigate();
   const { theme, toggle: toggleTheme } = useTheme();
   const [email, setEmail] = useState(DEMO_ACCOUNT.email);

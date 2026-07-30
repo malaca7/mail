@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import {
   ChevronLeft,
   ChevronRight,
@@ -27,8 +27,15 @@ import { useTheme } from "@/hooks/use-theme";
 import { getSession, signOut } from "@/lib/mail/session";
 import type { DraftPayload, Email, User } from "@/lib/mail/types";
 import { cn } from "@/lib/utils";
+import { LoginPage } from "./login";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: () => {
+    const session = getSession();
+    if (!session) {
+      throw redirect({ to: "/login", replace: true });
+    }
+  },
   head: () => ({
     meta: [
       { title: "Malaca Mail — Webmail privado do domínio malaca.com.br" },
@@ -80,16 +87,7 @@ function MailApp() {
   );
 
   if (!user) {
-    return (
-      <div className="grid min-h-screen place-items-center bg-background p-6">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <Logo variant="icon" size="xl" />
-          <p className="font-mono text-sm text-muted-foreground animate-pulse">
-            Carregando Malaca Mail...
-          </p>
-        </div>
-      </div>
-    );
+    return <LoginPage />;
   }
 
   const openCompose = (initial: Partial<DraftPayload> = {}) => {
