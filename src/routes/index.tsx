@@ -70,15 +70,24 @@ function parseAddresses(value: string) {
     });
 }
 
+function generateUUID() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "e_" + Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+}
+
 function MailApp() {
   const navigate = useNavigate();
   const { theme, toggle } = useTheme();
-  const [user, setUser] = useState<User | null>(() => getSession());
+  const [user, setUser] = useState<User | null>(null);
+  const [mounted, setMounted] = useState(false);
   const mailbox = useMailbox(user);
   const [composeOpen, setComposeOpen] = useState(false);
   const [composeInitial, setComposeInitial] = useState<Partial<DraftPayload>>({});
 
   useEffect(() => {
+    setMounted(true);
     const session = getSession();
     if (!session) {
       navigate({ to: "/login", replace: true });
@@ -92,7 +101,7 @@ function MailApp() {
     [mailbox.folder],
   );
 
-  if (!user) {
+  if (!mounted || !user) {
     return (
       <div className="grid min-h-screen place-items-center bg-background">
         <div className="flex flex-col items-center gap-3 text-center">
@@ -110,7 +119,7 @@ function MailApp() {
 
   const handleSend = (draft: DraftPayload) => {
     const email: Email = {
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       message_id: `<${Date.now()}@malaca.com.br>`,
       remetente: { nome: user.nome, email: user.email },
       destinatarios: parseAddresses(draft.para),
