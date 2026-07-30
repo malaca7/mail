@@ -1,16 +1,29 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
   <head>
+    <script>
+      (function() {
+        try {
+          var t = localStorage.getItem('malaca-mail:theme');
+          if (t === 'light') {
+            document.documentElement.classList.remove('dark');
+          } else {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Malaca Mail — Redirecionando...</title>
-    <script>
-      // Single Page App redirect for GitHub Pages custom domain routing
-      const path = window.location.pathname;
-      window.location.replace('/#' + path);
-    </script>
+    <title>Malaca Mail — Webmail Privado (@malaca.com.br)</title>
+    <link rel="icon" type="image/svg+xml" href="/logo-icon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" crossorigin href="/assets/styles-Y8HQj-bf.css" />
   </head>
-  <body>
-    <p>Redirecionando para o Malaca Mail...</p>
+  <body class="bg-background text-foreground antialiased">
+    <div id="root"></div>
+    <script type="module" crossorigin src="/assets/index-xN9d29qZ.js"></script>
   </body>
 </html>
