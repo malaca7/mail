@@ -118,19 +118,20 @@ function AdminPanel() {
         return;
       }
       
-      const success = registerAccount(newAccUsername, newAccName, newAccPassword);
-      if (success) {
-        toast.success("Conta criada com sucesso");
-        setIsCreatingAccount(false);
-        setNewAccUsername("");
-        setNewAccName("");
-        setNewAccPassword("");
-        refreshData();
-      } else {
-        toast.error("O usuário já existe");
-      }
+      registerAccount({
+        username: newAccUsername,
+        nome: newAccName,
+        senha: newAccPassword,
+      });
+
+      toast.success("Conta criada com sucesso");
+      setIsCreatingAccount(false);
+      setNewAccUsername("");
+      setNewAccName("");
+      setNewAccPassword("");
+      refreshData();
     } catch (error) {
-      toast.error("Erro ao criar conta");
+      toast.error((error as Error).message);
     }
   };
 
@@ -176,9 +177,9 @@ function AdminPanel() {
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50"></div>
           
           <div className="flex flex-col items-center mb-8">
-            <Logo className="w-16 h-16 mb-4" />
-            <h1 className="text-2xl font-display font-bold text-foreground">Malaca Admin</h1>
-            <p className="text-muted-foreground mt-2">Autenticação restrita ao sistema</p>
+            <Logo variant="horizontal" size="lg" />
+            <h1 className="text-2xl font-display font-bold text-foreground mt-3">Malaca Admin</h1>
+            <p className="text-muted-foreground mt-1">Autenticação restrita ao sistema</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-6">
@@ -227,7 +228,7 @@ function AdminPanel() {
   }
 
   const filteredAccounts = accounts.filter(acc => 
-    acc.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (acc.nome || acc.email).toLowerCase().includes(searchQuery.toLowerCase()) || 
     acc.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -236,8 +237,7 @@ function AdminPanel() {
       {/* Header */}
       <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-border bg-surface/80 backdrop-blur-md px-6 shadow-sm">
         <div className="flex items-center gap-3 mr-auto">
-          <Logo className="w-8 h-8" />
-          <h1 className="font-display font-semibold text-lg hidden sm:block">Malaca Admin</h1>
+          <Logo variant="horizontal" size="md" />
           <Badge variant="outline" className="tech-badge bg-primary/10 text-primary border-primary/20">
             ADMIN
           </Badge>
@@ -327,7 +327,7 @@ function AdminPanel() {
                     <p className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                       <HardDrive className="h-4 w-4 text-primary" /> Armazenamento
                     </p>
-                    <h3 className="text-3xl font-display font-bold mt-2">{formatBytes(stats.totalStorage)}</h3>
+                    <h3 className="text-3xl font-display font-bold mt-2">{formatBytes(stats.totalStorageBytes)}</h3>
                   </div>
                   <div className="absolute bottom-0 inset-x-0 h-1 bg-gradient-to-r from-orange-500 to-yellow-500"></div>
                 </div>
@@ -470,7 +470,7 @@ function AdminPanel() {
                             required
                           />
                           <div className="bg-muted px-3 py-2 border border-input rounded-r-md text-sm text-muted-foreground border-l-0">
-                            @malacamail.com
+                            @malaca.com.br
                           </div>
                         </div>
                       </div>
@@ -530,9 +530,9 @@ function AdminPanel() {
                           <tr key={account.id} className="border-b border-border/50 hover:bg-surface/30 transition-colors">
                             <td className="px-6 py-4 font-medium flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                {account.name.charAt(0).toUpperCase()}
+                                {(account.nome || account.email).charAt(0).toUpperCase()}
                               </div>
-                              {account.name}
+                              {account.nome || account.email}
                             </td>
                             <td className="px-6 py-4 font-mono text-muted-foreground">
                               {account.email}
@@ -548,8 +548,8 @@ function AdminPanel() {
                                 </Badge>
                               )}
                             </td>
-                            <td className="px-6 py-4 text-muted-foreground">
-                              {formatBytes(account.storageUsed)}
+                            <td className="px-6 py-4 font-mono text-muted-foreground">
+                              {formatBytes(account.quotaUsadaBytes ?? 0)}
                             </td>
                             <td className="px-6 py-4 text-right">
                               <div className="flex justify-end gap-2">
