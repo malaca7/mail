@@ -63,7 +63,11 @@ function parseAddresses(value: string) {
     .split(/[,;]/)
     .map((v) => v.trim())
     .filter(Boolean)
-    .map((email) => ({ email }));
+    .map((email) => {
+      const clean = email.toLowerCase();
+      const fullEmail = clean.includes("@") ? clean : `${clean}@malaca.com.br`;
+      return { email: fullEmail };
+    });
 }
 
 function MailApp() {

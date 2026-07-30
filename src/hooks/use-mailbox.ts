@@ -11,9 +11,24 @@ export function useMailbox(user?: User | null) {
   });
 
   useEffect(() => {
-    if (user) {
+    if (!user) return;
+
+    const reload = () => {
       setEmailsState(getUserEmails(user));
-    }
+    };
+
+    reload();
+
+    window.addEventListener("storage", reload);
+    window.addEventListener("malaca-mail:updated", reload);
+
+    const interval = setInterval(reload, 2500);
+
+    return () => {
+      window.removeEventListener("storage", reload);
+      window.removeEventListener("malaca-mail:updated", reload);
+      clearInterval(interval);
+    };
   }, [user?.id]);
 
   const setEmails = (action: React.SetStateAction<Email[]>) => {

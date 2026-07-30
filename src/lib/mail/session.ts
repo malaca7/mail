@@ -104,7 +104,8 @@ export function getSession(): User | null {
 }
 
 export function signIn(emailInput: string, senhaInput: string): User {
-  const cleanEmail = emailInput.trim().toLowerCase();
+  const cleanInput = emailInput.trim().toLowerCase();
+  const cleanEmail = cleanInput.includes("@") ? cleanInput : `${cleanInput}@malaca.com.br`;
   const accounts = getAllAccounts();
   const found = accounts.find((acc) => acc.email.toLowerCase() === cleanEmail);
 
@@ -153,6 +154,7 @@ export function saveUserEmails(user: User, emails: Email[]): void {
   const key = `${EMAILS_PREFIX}${user.id}`;
   try {
     window.localStorage.setItem(key, JSON.stringify(emails));
+    window.dispatchEvent(new Event("malaca-mail:updated"));
   } catch {
     // ignore
   }
@@ -163,8 +165,14 @@ export function deliverEmail(email: Email): void {
 
   const accounts = getAllAccounts();
   const recipientEmails = [
-    ...email.destinatarios.map((d) => d.email.toLowerCase()),
-    ...(email.cc?.map((c) => c.email.toLowerCase()) ?? []),
+    ...email.destinatarios.map((d) => {
+      const clean = d.email.trim().toLowerCase();
+      return clean.includes("@") ? clean : `${clean}@malaca.com.br`;
+    }),
+    ...(email.cc?.map((c) => {
+      const clean = c.email.trim().toLowerCase();
+      return clean.includes("@") ? clean : `${clean}@malaca.com.br`;
+    }) ?? []),
   ];
 
   // Run spam analysis
@@ -196,6 +204,9 @@ export function deliverEmail(email: Email): void {
       }
     }
   }
+
+  // Notify active listeners
+  window.dispatchEvent(new Event("malaca-mail:updated"));
 }
 
 // ── Admin Helpers ──
@@ -205,14 +216,15 @@ export function updateAccount(accountId: string, patch: Partial<StoredAccount>):
   const accounts = getAllAccounts();
   const updated = accounts.map((acc) => (acc.id === accountId ? { ...acc, ...patch } : acc));
   window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(updated));
+  window.dispatchEvent(new Event("malaca-mail:updated"));
 }
 
 export function deleteAccount(accountId: string): void {
   if (typeof window === "undefined") return;
   const accounts = getAllAccounts().filter((acc) => acc.id !== accountId && acc.id !== DEMO_ACCOUNT.id);
   window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
-  // Remove mailbox data
   window.localStorage.removeItem(`${EMAILS_PREFIX}${accountId}`);
+  window.dispatchEvent(new Event("malaca-mail:updated"));
 }
 
 export function getAccountStats() {
@@ -227,7 +239,7 @@ export function getAccountStats() {
       try {
         const emails = JSON.parse(raw) as Email[];
         totalEmails += emails.length;
-        totalStorageBytes += raw.length * 2; // rough estimate (UTF-16)
+        totalStorageBytes += raw.length * 2;
       } catch { /* ignore */ }
     }
   }
