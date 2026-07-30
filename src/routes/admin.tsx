@@ -26,6 +26,17 @@ import { getAllAccounts, registerAccount, updateAccount, deleteAccount, getAccou
 // Security config
 import { getSecurityConfig, saveSecurityConfig, generateDMARCRecord, type SecurityConfig } from "@/lib/mail/security-config";
 
+// External Gateway config
+import {
+  getGatewayConfig,
+  saveGatewayConfig,
+  sendRealExternalEmail,
+  simulateIncomingExternalEmail,
+  type GatewayConfig,
+  type GatewayProvider,
+} from "@/lib/mail/external-mail";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
@@ -81,6 +92,22 @@ function AdminPanel() {
   const [avScanAttachments, setAvScanAttachments] = useState(true);
   const [avScanLinks, setAvScanLinks] = useState(false);
   const [avMaxSize, setAvMaxSize] = useState(25);
+
+  // Gateway Config State
+  const [gatewayConfig, setGatewayConfig] = useState<GatewayConfig>(() => getGatewayConfig());
+
+  // Test Outbound State
+  const [testTo, setTestTo] = useState("");
+  const [testSubject, setTestSubject] = useState("Teste de E-mail Real — Malaca Mail");
+  const [testBody, setTestBody] = useState("Olá! Este é um e-mail de teste enviado pelo gateway do Malaca Mail.");
+  const [testLoading, setTestLoading] = useState(false);
+
+  // Test Inbound State
+  const [inboundFrom, setInboundFrom] = useState("cliente@gmail.com");
+  const [inboundFromName, setInboundFromName] = useState("Cliente Exemplo");
+  const [inboundTo, setInboundTo] = useState("contato@malaca.com.br");
+  const [inboundSubject, setInboundSubject] = useState("Dúvida sobre proposta comercial");
+  const [inboundBody, setInboundBody] = useState("<p>Olá! Gostaria de saber mais informações sobre os serviços.</p>");
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -168,6 +195,55 @@ function AdminPanel() {
 
   const handleSaveSpam = () => {
     toast.success("Configurações de Antispam & Antivírus salvas com sucesso");
+  };
+
+  const handleSaveGateway = () => {
+    saveGatewayConfig(gatewayConfig);
+    toast.success("Configurações do Gateway Externo salvas com sucesso!");
+  };
+
+  const handleSendTestReal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!testTo.trim()) {
+      toast.error("Informe o e-mail de destino");
+      return;
+    }
+    setTestLoading(true);
+    try {
+      const res = await sendRealExternalEmail({
+        to: [testTo.trim()],
+        subject: testSubject,
+        html: `<div style="font-family: sans-serif; padding: 20px; color: #333;"><h2>E-mail de Teste</h2><p>${testBody}</p><hr><p style="font-size: 11px; color: #777;">Enviado via Malaca Mail Gateway (${gatewayConfig.provider.toUpperCase()})</p></div>`,
+        fromName: gatewayConfig.fromName || "Malaca Mail System",
+        fromEmail: "contato@malaca.com.br",
+      });
+
+      if (res.success) {
+        toast.success(`E-mail entregue com sucesso via ${res.providerUsed.toUpperCase()}! (ID: ${res.messageId})`);
+      } else {
+        toast.error(`Falha no envio via ${res.providerUsed.toUpperCase()}: ${res.error}`);
+      }
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setTestLoading(false);
+    }
+  };
+
+  const handleSimulateInbound = (e: React.FormEvent) => {
+    e.preventDefault();
+    const ok = simulateIncomingExternalEmail({
+      fromName: inboundFromName,
+      fromEmail: inboundFrom,
+      toEmail: inboundTo,
+      subject: inboundSubject,
+      htmlContent: inboundBody,
+    });
+    if (ok) {
+      toast.success(`E-mail de ${inboundFrom} entregue na caixa de ${inboundTo}!`);
+    } else {
+      toast.error(`Conta de destino ${inboundTo} não encontrada.`);
+    }
   };
 
   if (!isAuthenticated) {
@@ -287,6 +363,10 @@ function AdminPanel() {
               <TabsTrigger value="antispam" className="gap-2">
                 <Bug className="h-4 w-4" />
                 <span className="hidden sm:inline">Antispam & Antivírus</span>
+              </TabsTrigger>
+              <TabsTrigger value="gateway" className="gap-2">
+                <Globe className="h-4 w-4" />
+                <span className="hidden sm:inline">Gateway Externo</span>
               </TabsTrigger>
             </TabsList>
 
@@ -905,6 +985,229 @@ function AdminPanel() {
                         </div>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* TAB: GATEWAY EXTERNO */}
+            <TabsContent value="gateway" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Gateway Provider Settings */}
+                <div className="glass-panel p-6 rounded-xl border border-border space-y-6">
+                  <div className="flex items-center justify-between border-b border-border pb-4">
+                    <div>
+                      <h3 className="font-display text-lg font-semibold flex items-center gap-2">
+                        <Globe className="h-5 w-5 text-primary" />
+                        Provedor de E-mail Externo (SMTP / API)
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Configure a API do Resend, SendGrid ou SMTP para enviar e-mails reais para a internet.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Provedor Ativo</Label>
+                      <Select
+                        value={gatewayConfig.provider}
+                        onValueChange={(val: GatewayProvider) =>
+                          setGatewayConfig((prev) => ({ ...prev, provider: val }))
+                        }
+                      >
+                        <SelectTrigger className="w-full bg-surface/50 font-medium">
+                          <SelectValue placeholder="Selecione o provedor" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="resend">Resend API (Recomendado — Grátis ate 3.000 e-mails/mês)</SelectItem>
+                          <SelectItem value="sendgrid">SendGrid API</SelectItem>
+                          <SelectItem value="smtp_custom">Servidor SMTP Customizado</SelectItem>
+                          <SelectItem value="simulation">Modo Simulação (Sem API Key)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {gatewayConfig.provider === "resend" && (
+                      <div className="space-y-2 pt-2 animate-in fade-in">
+                        <div className="flex justify-between items-center">
+                          <Label htmlFor="resend_key">Resend API Key</Label>
+                          <a
+                            href="https://resend.com/api-keys"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-primary hover:underline font-mono flex items-center gap-1"
+                          >
+                            Obter chave no Resend.com →
+                          </a>
+                        </div>
+                        <Input
+                          id="resend_key"
+                          type="password"
+                          placeholder="re_123456789..."
+                          value={gatewayConfig.resendApiKey}
+                          onChange={(e) =>
+                            setGatewayConfig((prev) => ({ ...prev, resendApiKey: e.target.value }))
+                          }
+                          className="font-mono text-sm bg-surface/50"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Insira sua chave <code className="font-mono bg-muted px-1 rounded">re_...</code> para enviar e-mails reais para qualquer endereço do Gmail, Outlook, Yahoo ou empresas.
+                        </p>
+                      </div>
+                    )}
+
+                    {gatewayConfig.provider === "sendgrid" && (
+                      <div className="space-y-2 pt-2 animate-in fade-in">
+                        <Label htmlFor="sg_key">SendGrid API Key</Label>
+                        <Input
+                          id="sg_key"
+                          type="password"
+                          placeholder="SG.123456789..."
+                          value={gatewayConfig.sendgridApiKey}
+                          onChange={(e) =>
+                            setGatewayConfig((prev) => ({ ...prev, sendgridApiKey: e.target.value }))
+                          }
+                          className="font-mono text-sm bg-surface/50"
+                        />
+                      </div>
+                    )}
+
+                    {gatewayConfig.provider === "smtp_custom" && (
+                      <div className="space-y-3 pt-2 grid grid-cols-2 gap-3 animate-in fade-in">
+                        <div className="col-span-2 space-y-1">
+                          <Label>Host SMTP</Label>
+                          <Input
+                            placeholder="smtp.seuprovedor.com"
+                            value={gatewayConfig.smtpHost}
+                            onChange={(e) =>
+                              setGatewayConfig((prev) => ({ ...prev, smtpHost: e.target.value }))
+                            }
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label>Porta</Label>
+                          <Input
+                            type="number"
+                            placeholder="587"
+                            value={gatewayConfig.smtpPort}
+                            onChange={(e) =>
+                              setGatewayConfig((prev) => ({ ...prev, smtpPort: parseInt(e.target.value) || 587 }))
+                            }
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label>Usuário</Label>
+                          <Input
+                            placeholder="smtp@malaca.com.br"
+                            value={gatewayConfig.smtpUser}
+                            onChange={(e) =>
+                              setGatewayConfig((prev) => ({ ...prev, smtpUser: e.target.value }))
+                            }
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <Button onClick={handleSaveGateway} className="w-full gap-2 font-semibold">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Salvar Configurações do Gateway
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Outbound & Inbound Test Tools */}
+                <div className="space-y-6">
+                  {/* Real Outbound Test */}
+                  <div className="glass-panel p-6 rounded-xl border border-border">
+                    <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-2">
+                      <Zap className="h-5 w-5 text-amber-400" />
+                      Teste de Envio Real para a Internet
+                    </h3>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Dispare um e-mail de teste para o seu próprio Gmail ou Outlook pessoal para validar a entrega.
+                    </p>
+
+                    <form onSubmit={handleSendTestReal} className="space-y-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="test_to">E-mail de Destino (Gmail / Outlook / etc.)</Label>
+                        <Input
+                          id="test_to"
+                          type="email"
+                          placeholder="seu.email.pessoal@gmail.com"
+                          value={testTo}
+                          onChange={(e) => setTestTo(e.target.value)}
+                          className="font-mono text-sm bg-surface/50"
+                          required
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label htmlFor="test_sub">Assunto</Label>
+                        <Input
+                          id="test_sub"
+                          value={testSubject}
+                          onChange={(e) => setTestSubject(e.target.value)}
+                          className="text-sm bg-surface/50"
+                        />
+                      </div>
+
+                      <Button type="submit" disabled={testLoading} className="w-full gap-2 bg-amber-500 hover:bg-amber-600 text-black font-bold">
+                        <Zap className="w-4 h-4 fill-current" />
+                        {testLoading ? "Disparando..." : "Disparar E-mail Real Agora"}
+                      </Button>
+                    </form>
+                  </div>
+
+                  {/* Inbound Simulator Test */}
+                  <div className="glass-panel p-6 rounded-xl border border-border">
+                    <h3 className="font-display text-lg font-semibold flex items-center gap-2 mb-2">
+                      <Mail className="h-5 w-5 text-cyan-400" />
+                      Simulador de Recebimento Externo (Inbound Test)
+                    </h3>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      Simule a chegada de uma mensagem vinda de qualquer endereço externo para uma conta local.
+                    </p>
+
+                    <form onSubmit={handleSimulateInbound} className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label>Remetente Externo</Label>
+                          <Input
+                            placeholder="cliente@gmail.com"
+                            value={inboundFrom}
+                            onChange={(e) => setInboundFrom(e.target.value)}
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label>Destinatário Local</Label>
+                          <Input
+                            placeholder="contato@malaca.com.br"
+                            value={inboundTo}
+                            onChange={(e) => setInboundTo(e.target.value)}
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label>Assunto</Label>
+                        <Input
+                          value={inboundSubject}
+                          onChange={(e) => setInboundSubject(e.target.value)}
+                          className="text-sm"
+                        />
+                      </div>
+
+                      <Button type="submit" variant="secondary" className="w-full gap-2 font-medium">
+                        <RefreshCw className="w-4 h-4" />
+                        Simular Chegada de E-mail Externo
+                      </Button>
+                    </form>
                   </div>
                 </div>
               </div>

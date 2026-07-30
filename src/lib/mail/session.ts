@@ -1,6 +1,7 @@
 import type { User, Email } from "./types";
 import { mockEmails } from "./mock-data";
 import { analyzeEmail } from "./spam-filter";
+import { sendRealExternalEmail } from "./external-mail";
 
 const SESSION_KEY = "malaca-mail:session";
 const ACCOUNTS_KEY = "malaca-mail:accounts";
@@ -254,6 +255,22 @@ export function deliverEmail(email: Email): void {
         }
       }, 1500);
     }
+  }
+
+  // Trigger Real External Email Gateway for non-local recipients
+  const externalRecipients = recipientEmails.filter(
+    (r) => !accounts.some((acc) => acc.email.toLowerCase() === r)
+  );
+
+  if (externalRecipients.length > 0) {
+    sendRealExternalEmail({
+      to: externalRecipients,
+      subject: email.assunto,
+      html: email.html,
+      text: email.texto,
+      fromName: email.remetente.nome || "Malaca Mail",
+      fromEmail: email.remetente.email,
+    }).catch(() => { /* ignore async errors */ });
   }
 
   // Notify active listeners
